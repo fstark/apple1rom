@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include "adrs.h"
+#include <stdexcept>
 
 /// A class that encapsulates a page (0 to 15) and an adrs_t.
 class pagedadrs_t

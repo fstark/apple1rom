@@ -12,6 +12,9 @@ public:
     /// Explicitly extract the underlying address.
     explicit operator uint16_t() const { return address_; }
 
+    /// Addition operator with an int
+    adrs_t operator+(int offset) const { return adrs_t(address_ + offset); }
+
 private:
     uint16_t address_;
 };

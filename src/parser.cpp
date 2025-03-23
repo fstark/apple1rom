@@ -2,9 +2,11 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
+#include <memory>
 
-std::vector<romentryspec> parse_romentryspecs(const std::string& filename) {
-    std::vector<romentryspec> entries;
+std::vector<std::shared_ptr<romentryspec>> parse_romentryspecs(const std::string& filename) {
+    std::vector<std::shared_ptr<romentryspec>> entries;
     std::ifstream file(filename);
     if (!file.is_open()) {
         throw std::runtime_error("Could not open file: " + filename);
@@ -31,10 +33,9 @@ std::vector<romentryspec> parse_romentryspecs(const std::string& filename) {
         romentryspec entry(
             name,
             data,
-            adrs_t(address),
-            pagedadrs_t(0, adrs_t(address)) );
+            adrs_t(address) );
 
-        entries.push_back(entry);
+        entries.push_back(std::make_shared<romentryspec>(entry));
     }
 
     return entries;
