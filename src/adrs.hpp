@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include <compare>
+#include <iomanip>
 #include <sstream>
 
 /// A class that encapsulates a uint16_t address.
@@ -28,7 +29,7 @@ class adrs_t
     std::string to_string() const
     {
         std::stringstream ss;
-        ss << std::hex << address_;
+        ss << std::hex << std::setw(4) << std::setfill('0') << address_;
         return ss.str();
     }
 

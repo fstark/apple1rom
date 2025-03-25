@@ -21,18 +21,21 @@ int main(int argc, const char** argv)
     std::string input_filename = argv[1];
     std::string output_filename = argv[2];
 
-    /// Parse entry specs
-    auto entries = parse_romentryspecs(input_filename);
-
     rom512 rom;
-    mapping map(rom);
 
-    for (const auto& entry : entries)
-    {
-        std::clog << "Entry [" << entry->name() << "] at " << entry->adrs().to_string()
-                  << std::endl;
-        map.add_entry(entry);  // #### Maybe we should pass the rom
-    }
+    /// Parse entry specs
+    parse_romspec(input_filename, rom);
+
+    /*
+        mapping map(rom);
+
+            for (const auto& entry : entries)
+        {
+            std::clog << "Entry [" << entry->name() << "] at " << entry->adrs().to_string()
+                      << std::endl;
+            map.add_entry(entry);  // #### Maybe we should pass the rom
+        }
+    */
 
     std::clog << "Generating [" + output_filename + "]" << std::endl;
 

@@ -50,3 +50,8 @@ chartokenizer::Token chartokenizer::next_token()
     }
     return token;
 }
+
+std::shared_ptr<chartokenizer> chartokenizer::create(const std::string& str)
+{
+    return std::make_shared<chartokenizer>(str);
+}

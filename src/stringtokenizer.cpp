@@ -1,6 +1,7 @@
 #include "stringtokenizer.hpp"
 
-stringtokenizer::stringtokenizer(chartokenizer& char_tok) : char_tok_(char_tok), has_peeked_(false)
+stringtokenizer::stringtokenizer(std::shared_ptr<chartokenizer> char_tok)
+    : char_tok_(char_tok), has_peeked_(false)
 {
 }
 
@@ -12,16 +13,16 @@ void stringtokenizer::extract_current_string()
     // Skip leading spaces
     do
     {
-        token = char_tok_.next_token();
+        token = char_tok_->next_token();
     } while (token.type != chartokenizer::EOS && isspace(token.value));
 
     if (token.type == chartokenizer::QUOTE)
     {
-        token = char_tok_.next_token();
+        token = char_tok_->next_token();
         while (token.type != chartokenizer::EOS && token.type != chartokenizer::QUOTE)
         {
             current_string_ += token.value;
-            token = char_tok_.next_token();
+            token = char_tok_->next_token();
         }
 
         if (token.type != chartokenizer::QUOTE)
@@ -34,7 +35,7 @@ void stringtokenizer::extract_current_string()
         while (token.type != chartokenizer::EOS && !isspace(token.value))
         {
             current_string_ += token.value;
-            token = char_tok_.next_token();
+            token = char_tok_->next_token();
         }
     }
 }

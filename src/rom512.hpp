@@ -86,6 +86,7 @@ class rombank32
         }
     }
 
+    // ### Wrongly named
     bool allocate(size_t size, adrs_t& adrs)
     {
         //  Find the first freespace that contains size bytes
@@ -114,22 +115,32 @@ class rombank32
     }
 };
 
+// TODO : sort allocation needs :
+//->size = > page, adrs
+//->adrs = > page, [adrs]
+//-> page, adrs = > [page],[adrs]
+
 /// A 512K apple1 rom
 class rom512
 {
     std::array<rombank32, BankCount> banks_;
 
    public:
-    void store(const std::vector<uint8_t>& data, const pagedadrs_t& adrs)
+    void store(const std::vector<uint8_t>& data, const pagedadrs_t& pagedadrs)
     {
         // get the bank
-        auto& bank = banks_[adrs.get_page()];
+        auto& bank = banks_[pagedadrs.get_page()];
+        auto adrs = pagedadrs.get_address();
+
+        // std::clog << "Storing " << data.size() << " bytes at " << pagedadrs.to_string()
+        //           << std::endl;
 
         // add the data
-        bank.store(data, adrs.get_address());
+        bank.store(data, adrs);
     }
 
     //  Find the first space in the first bank that has size bytes available
+    //  wrongly named
     pagedadrs_t allocate(size_t size)
     {
         adrs_t adrs(0);

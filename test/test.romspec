@@ -36,15 +36,15 @@ COPY DATA 0E TO 0E:9FFF
 COPY DATA 0F TO 0F:9FFF
 
 ; A basic loads at E000
-COPY ../../apple1loader/software/BASIC TO 6000
+COPY FILE ../../apple1loader/software/BASIC TO 6000
     MENU lang/basic = EXEC E000
     MENU "lang/warm basic" = EXEC E2F3
 
-COPY ../../wozdle/WOZDLE TO 2000
+COPY FILE ../../wozdle/WOZDLE TO 2000
     MENU games/wozdle 
 
-COPY ../../mandelbrot65/mandelbrot65.o65 ANYWHERE
+COPY FILE ../../mandelbrot65/mandelbrot65.o65 ANYWHERE
     MENU demos/mandelbrot65 = EXEC COPY AT 0280
 
-COPY ../../apple1loader/src/TICTACTOE ANYWHERE
+COPY FILE ../../apple1loader/src/TICTACTOE ANYWHERE
     MENU games/tictactoe = EXEC COPY 0080-00A0,0300 EXEC "lang/warm basic"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
 class chartokenizer
@@ -23,6 +24,8 @@ class chartokenizer
 
     Token peek_token();
     Token next_token();
+
+    static std::shared_ptr<chartokenizer> create(const std::string& str);
 
    private:
     std::string str_;
