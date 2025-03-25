@@ -1,24 +1,51 @@
 #include <stdio.h>
-#include <string>
-#include "parser.h"
-#include "mapping.h"
-#include "rom512.h"
 
-int main( int argc, const char **argv )
+#include <fstream>
+#include <iostream>
+#include <string>
+
+#include "mapping.hpp"
+#include "parser.hpp"
+#include "rom512.hpp"
+
+using namespace std::string_literals;
+
+int main(int argc, const char** argv)
 {
-    if (argc != 2) {
-        printf("Usage: %s <filename>\n", argv[0]);
+    if (argc != 3)
+    {
+        printf("Usage: %s <input filename> <output filename>\n", argv[0]);
         return 1;
     }
+
+    std::string input_filename = argv[1];
+    std::string output_filename = argv[2];
+
     /// Parse entry specs
-    auto entries = parse_romentryspecs(argv[1]);
+    auto entries = parse_romentryspecs(input_filename);
 
     rom512 rom;
     mapping map(rom);
 
-    for (const auto& entry : entries) {
-        map.add_entry(entry);
+    for (const auto& entry : entries)
+    {
+        std::clog << "Entry [" << entry->name() << "] at " << entry->adrs().to_string()
+                  << std::endl;
+        map.add_entry(entry);  // #### Maybe we should pass the rom
     }
+
+    std::clog << "Generating [" + output_filename + "]" << std::endl;
+
+    // Write content to output_filename
+    auto content = rom.get_content();
+    std::ofstream output_file(output_filename, std::ios::binary);
+    if (!output_file)
+    {
+        std::cerr << "Error: Could not open output file " << output_filename << std::endl;
+        return 1;
+    }
+    output_file.write(reinterpret_cast<const char*>(content.data()), content.size());
+    output_file.close();
 
     return 0;
 }

@@ -31,3 +31,8 @@
 *.out
 *.app
 makea1rom
+
+src/trace.txt
+
+# Test BINs
+test/*.BIN

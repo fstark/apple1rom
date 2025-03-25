@@ -39,4 +39,5 @@ clean:
 	-rm -f $(BIN)
 
 test: $(BIN)
-	./$(BIN) ../test.romspec
+	./$(BIN) ../test/test.romspec ../test/SILICROM512.BIN
+	../../napple1/napple1 ../test/test.cmd
