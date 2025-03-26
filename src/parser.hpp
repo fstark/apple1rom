@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "menu.hpp"
 #include "rom512.hpp"
 #include "stringtokenizer.hpp"
 
@@ -11,14 +12,18 @@ class parser
 {
     rom512 &rom_;
     std::shared_ptr<stringtokenizer> tokenizer_;
+    std::vector<menu_item> menu_;
+
+    std::string last_menu_name_;
+    pagedadrs_t last_pagedadrs_;
+    size_t last_len_;
 
    public:
-    parser(rom512 &rom, std::shared_ptr<stringtokenizer> tokenizer)
-        : rom_(rom), tokenizer_(std::move(tokenizer))
-    {
-    }
     parser(rom512 &rom, std::string &source)
-        : rom_(rom), tokenizer_(std::make_shared<stringtokenizer>(chartokenizer::create(source)))
+        : rom_(rom),
+          tokenizer_(std::make_shared<stringtokenizer>(chartokenizer::create(source))),
+          last_pagedadrs_(0, adrs_t(0)),
+          last_len_(0)
     {
         parse();
     }
@@ -30,6 +35,8 @@ class parser
     void parse_copy_data();
     void parser_copy_to(std::vector<uint8_t> data);
     bool parse_anyadrs(uint8_t &page, uint16_t &adrs);
+    void parse_menu();
+    void parse_exec();
 };
 
 /// Parses a file containing ROM entry specifications.

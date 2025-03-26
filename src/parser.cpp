@@ -84,6 +84,7 @@ void parser::parser_copy_to(std::vector<uint8_t> data)
         throw std::runtime_error("Expected TO or ANYWHERE, got: " + token);
 
     rom_.store(data, final_adrs);
+    last_pagedadrs_ = final_adrs;
 }
 
 // COPY FILE BOOT.BIN TO 00:2000
@@ -129,12 +130,41 @@ void parser::parse_copy()
         parse_copy_data();
 }
 
+void parser::parse_menu() { last_menu_name_ = tokenizer_->next_string(); }
+
+void parser::parse_exec()
+{
+    menu_.push_back(menu_item(last_menu_name_, execaction{last_pagedadrs_}));
+}
+
 void parser::parse()
 {
+    // Reserve space for the code4096 bytes for the menu
+    rom_.reserve(pagedadrs_t(0, adrs_t(0x2100)), 4096);
+
     // Loop over all the tokens and process them
     while (!tokenizer_->peek_string().empty())
     {
         auto str = tokenizer_->next_string();
         if (str == "COPY") parse_copy();
+        if (str == "MENU") parse_menu();
+        if (str == "EXEC") parse_exec();
     }
+
+    std::clog << "Parsed " << menu_.size() << " menu items" << std::endl;
+    emiter e;
+    for (const auto &item : menu_)
+    {
+        std::clog << "Menu item [" << item.name() << "]" << std::endl;
+        for (const auto &action : item.actions())
+        {
+            action->doit(e);
+        }
+    }
+
+    if (e.code().size() > 4096)
+    {
+        throw std::runtime_error("Code too big");
+    }
+    rom_.store_unchecked(e.code(), pagedadrs_t(0, adrs_t(0x2100)));
 }

@@ -1,21 +1,21 @@
 ; All ROMs contain the BOOT block at 2000
 
-COPY FILE BOOT.BIN TO 00:2000
-COPY FILE BOOT.BIN TO 01:2000
-COPY FILE BOOT.BIN TO 02:2000
-COPY FILE BOOT.BIN TO 03:2000
-COPY FILE BOOT.BIN TO 04:2000
-COPY FILE BOOT.BIN TO 05:2000
-COPY FILE BOOT.BIN TO 06:2000
-COPY FILE BOOT.BIN TO 07:2000
-COPY FILE BOOT.BIN TO 08:2000
-COPY FILE BOOT.BIN TO 09:2000
-COPY FILE BOOT.BIN TO 0A:2000
-COPY FILE BOOT.BIN TO 0B:2000
-COPY FILE BOOT.BIN TO 0C:2000
-COPY FILE BOOT.BIN TO 0D:2000
-COPY FILE BOOT.BIN TO 0E:2000
-COPY FILE BOOT.BIN TO 0F:2000
+COPY FILE boot.bin TO 00:2000
+COPY FILE boot.bin TO 01:2000
+COPY FILE boot.bin TO 02:2000
+COPY FILE boot.bin TO 03:2000
+COPY FILE boot.bin TO 04:2000
+COPY FILE boot.bin TO 05:2000
+COPY FILE boot.bin TO 06:2000
+COPY FILE boot.bin TO 07:2000
+COPY FILE boot.bin TO 08:2000
+COPY FILE boot.bin TO 09:2000
+COPY FILE boot.bin TO 0A:2000
+COPY FILE boot.bin TO 0B:2000
+COPY FILE boot.bin TO 0C:2000
+COPY FILE boot.bin TO 0D:2000
+COPY FILE boot.bin TO 0E:2000
+COPY FILE boot.bin TO 0F:2000
 
 ; Every bank contains the bank ID at $9FFF
 COPY DATA 00 TO 00:9FFF
@@ -37,14 +37,21 @@ COPY DATA 0F TO 0F:9FFF
 
 ; A basic loads at E000
 COPY FILE ../../apple1loader/software/BASIC TO 6000
-    MENU lang/basic = EXEC E000
-    MENU "lang/warm basic" = EXEC E2F3
+    MENU lang/basic
+        EXEC E000
+    MENU "lang/warm basic"
+        EXEC E2F3
 
 COPY FILE ../../wozdle/WOZDLE TO 3000
-    MENU games/wozdle 
+    MENU games/wozdle
+        EXEC 3000
 
 COPY FILE ../../mandelbrot65/mandelbrot65.o65 ANYWHERE
-    MENU demos/mandelbrot65 = EXEC COPY AT 0280
+    MENU demos/mandelbrot65
+        COPY 0280
+        EXEC 0280
 
 COPY FILE ../../apple1loader/src/TICTACTOE ANYWHERE
-    MENU games/tictactoe = EXEC COPY 0080-00A0,0300 EXEC "lang/warm basic"
+    MENU games/tictactoe
+        COPY 0080-00A0,0300
+        EXEC "lang/warm basic"

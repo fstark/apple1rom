@@ -1,7 +1,8 @@
 # Set default parallel build
 MAKEFLAGS += -j16
 
-BIN=../makea1rom
+BIN=../makea1rom boot.bin menu.bin
+
 # napple1 makefile 
 
 CC = g++
@@ -23,7 +24,7 @@ all: $(BIN)
 debug: CFLAGS += $(DEBUG_FLAGS)
 debug: $(BIN)
 
-$(BIN): $(OBJ)
+../makea1rom: $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
 # Generic rule for compiling .cpp files to .o files
@@ -39,5 +40,8 @@ clean:
 	-rm -f $(BIN)
 
 test: $(BIN)
-	./$(BIN) ../test/test.romspec ../test/SILICROM512.BIN
+	../makea1rom ../test/test.romspec ../test/SILICROM512.BIN
 	../../napple1/napple1 ../test/test.cmd
+
+%.bin: %.asm
+	xa -XCA65 -o $@ $<

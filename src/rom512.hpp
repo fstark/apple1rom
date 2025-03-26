@@ -49,22 +49,16 @@ class rombank32
         return false;
     }
 
-    void store(const std::vector<uint8_t> data, const adrs_t adrs)
+    void reserve(adrs_t adrs, size_t size)
     {
         //  Checks free
-        if (!check_free(adrs, data.size()))
-            throw std::runtime_error("Not enough space to store data at the given address");
-
-        // std::clog << "Storing " << data.size() << " bytes at " << adrs.to_string() << std::endl;
-        for (size_t i = 0; i < data.size(); i++)
-        {
-            data_[(uint16_t)(adrs + i)] = data[i];
-        }
+        if (!check_free(adrs, size))
+            throw std::runtime_error("Not enough space to reserve data at the given address");
 
         // Update free list
         for (size_t i = 0; i < free_.size(); ++i)
         {
-            if (adrs >= free_[i].start && adrs + data.size() <= free_[i].start + free_[i].size)
+            if (adrs >= free_[i].start && adrs + size <= free_[i].start + free_[i].size)
             {
                 // Split the free block into two if necessary
                 if (adrs > free_[i].start)
@@ -73,17 +67,60 @@ class rombank32
                                  {free_[i].start, (size_t)(adrs - free_[i].start)});
                     ++i;  // Adjust index due to insertion
                 }
-                if (adrs + data.size() < free_[i].start + free_[i].size)
+                if (adrs + size < free_[i].start + free_[i].size)
                 {
-                    free_.insert(free_.begin() + i + 1,
-                                 {adrs + data.size(), (size_t)((free_[i].start + free_[i].size) -
-                                                               (adrs + data.size()))});
+                    free_.insert(
+                        free_.begin() + i + 1,
+                        {adrs + size, (size_t)((free_[i].start + free_[i].size) - (adrs + size))});
                 }
                 // Remove the original free block
                 free_.erase(free_.begin() + i);
                 break;
             }
         }
+    }
+
+    void store_unchecked(const std::vector<uint8_t> data, const adrs_t adrs)
+    {
+        // std::clog << "Storing " << data.size() << " bytes at " << adrs.to_string() << std::endl;
+        for (size_t i = 0; i < data.size(); i++)
+        {
+            data_[(uint16_t)(adrs + i)] = data[i];
+        }
+    }
+
+    void store(const std::vector<uint8_t> data, const adrs_t adrs)
+    {
+        //  Checks free
+        if (!check_free(adrs, data.size()))
+            throw std::runtime_error("Not enough space to store data at the given address");
+
+        store_unchecked(data, adrs);
+        reserve(adrs, data.size());
+
+        // // Update free list
+        // for (size_t i = 0; i < free_.size(); ++i)
+        // {
+        //     if (adrs >= free_[i].start && adrs + data.size() <= free_[i].start + free_[i].size)
+        //     {
+        //         // Split the free block into two if necessary
+        //         if (adrs > free_[i].start)
+        //         {
+        //             free_.insert(free_.begin() + i,
+        //                          {free_[i].start, (size_t)(adrs - free_[i].start)});
+        //             ++i;  // Adjust index due to insertion
+        //         }
+        //         if (adrs + data.size() < free_[i].start + free_[i].size)
+        //         {
+        //             free_.insert(free_.begin() + i + 1,
+        //                          {adrs + data.size(), (size_t)((free_[i].start + free_[i].size) -
+        //                                                        (adrs + data.size()))});
+        //         }
+        //         // Remove the original free block
+        //         free_.erase(free_.begin() + i);
+        //         break;
+        //     }
+        // }
     }
 
     //  Find the first space that has size bytes available
@@ -126,6 +163,31 @@ class rom512
     std::array<rombank32, BankCount> banks_;
 
    public:
+    void reserve(const pagedadrs_t& pagedadrs, size_t size)
+    {
+        // get the bank
+        auto& bank = banks_[pagedadrs.get_page()];
+        auto adrs = pagedadrs.get_address();
+
+        std::clog << "Reserving " << size << " bytes at " << pagedadrs.to_string() << std::endl;
+
+        // add the data
+        bank.reserve(adrs, size);
+    }
+
+    void store_unchecked(const std::vector<uint8_t>& data, const pagedadrs_t& pagedadrs)
+    {
+        // get the bank
+        auto& bank = banks_[pagedadrs.get_page()];
+        auto adrs = pagedadrs.get_address();
+
+        std::clog << "Storing unchecked " << data.size() << " bytes at " << pagedadrs.to_string()
+                  << std::endl;
+
+        // add the data
+        bank.store_unchecked(data, adrs);
+    }
+
     void store(const std::vector<uint8_t>& data, const pagedadrs_t& pagedadrs)
     {
         // get the bank

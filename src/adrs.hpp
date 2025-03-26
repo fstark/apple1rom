@@ -18,12 +18,19 @@ class adrs_t
 
     /// Addition operator with an int
     adrs_t operator+(int offset) const { return adrs_t(address_ + offset); }
+    adrs_t operator-(int offset) const { return adrs_t(address_ - offset); }
 
     /// Substraction with another address
     int operator-(const adrs_t& other) const { return address_ - other.address_; }
 
     /// Comparison (using spaceship operator)
     auto operator<=>(const adrs_t&) const = default;
+
+    /// Low byte
+    uint8_t get_low() const { return address_ & 0xff; }
+
+    /// High byte
+    uint8_t get_high() const { return address_ >> 8; }
 
     /// To string
     std::string to_string() const
