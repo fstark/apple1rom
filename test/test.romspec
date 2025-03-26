@@ -40,7 +40,7 @@ COPY FILE ../../apple1loader/software/BASIC TO 6000
     MENU lang/basic = EXEC E000
     MENU "lang/warm basic" = EXEC E2F3
 
-COPY FILE ../../wozdle/WOZDLE TO 2000
+COPY FILE ../../wozdle/WOZDLE TO 3000
     MENU games/wozdle 
 
 COPY FILE ../../mandelbrot65/mandelbrot65.o65 ANYWHERE

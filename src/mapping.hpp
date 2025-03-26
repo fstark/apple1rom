@@ -25,17 +25,17 @@ class mapping
     /// Finds somewhere in the rom a place to store the data
     pagedadrs_t find_adrs(const romentryspec &entry)
     {
-        std::clog << "Finding adrs for entry " << entry.name() << std::endl;
+        // std::clog << "Finding adrs for entry " << entry.name() << std::endl;
 
-        if (entry.type() == romentryspec::kFixed)
-        {
-            return pagedadrs_t(0, entry.adrs());  // todo find bank
-        }
+        // if (entry.type() == romentryspec::kFixed)
+        // {
+        //     return pagedadrs_t(0, entry.adrs());  // todo find bank
+        // }
 
-        if (entry.type() == romentryspec::kRelocatable)
-        {
-            return rom_.allocate(entry.data().size());
-        }
+        // if (entry.type() == romentryspec::kRelocatable)
+        // {
+        //     return rom_.allocate(entry.data().size());
+        // }
 
         throw std::runtime_error("Unable to find adrs for entry "s + entry.name());
     }

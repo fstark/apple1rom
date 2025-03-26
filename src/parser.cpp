@@ -49,6 +49,43 @@ bool parser::parse_anyadrs(uint8_t &page, uint16_t &adrs)
     }
 }
 
+void parser::parser_copy_to(std::vector<uint8_t> data)
+{
+    std::string token = tokenizer_->next_string();
+
+    pagedadrs_t final_adrs{0, adrs_t{0}};
+    if (token == "TO")
+    {
+        uint8_t page;
+        uint16_t adrs;
+        if (parse_anyadrs(page, adrs))
+        {
+            final_adrs = pagedadrs_t(page, adrs_t{adrs});
+        }
+        else
+        {
+            if (!rom_.find_space(data.size(), adrs_t{adrs}, final_adrs))
+            {
+                throw std::runtime_error("Cannot find " + std::to_string(data.size()) +
+                                         " bytes starting at " + std::to_string(adrs) +
+                                         " in any page");
+            }
+        }
+    }
+    else if (token == "ANYWHERE")
+    {
+        if (!rom_.find_space(data.size(), final_adrs))
+        {
+            throw std::runtime_error("Cannot find " + std::to_string(data.size()) +
+                                     " bytes anywhere");
+        }
+    }
+    else
+        throw std::runtime_error("Expected TO or ANYWHERE, got: " + token);
+
+    rom_.store(data, final_adrs);
+}
+
 // COPY FILE BOOT.BIN TO 00:2000
 void parser::parse_copy_file()
 {
@@ -63,12 +100,7 @@ void parser::parse_copy_file()
                               std::istreambuf_iterator<char>());
     file.close();
 
-    tokenizer_->accept("TO");
-
-    auto adrs = parse_pagedadrs();
-
-    // Store the data in ROM
-    rom_.store(data, adrs);
+    parser_copy_to(data);
 }
 
 // COPY DATA 00 TO 00:9FFF
@@ -83,22 +115,7 @@ void parser::parse_copy_data()
         data.push_back(std::stoi(byte_str, nullptr, 16));
     }
 
-    //  log data
-    // std::clog << "Data: ";
-    // for (auto byte : data)
-    // {
-    //     std::clog << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte)
-    //     << "
-    //     ";
-    // }
-    // std::clog << std::endl;
-
-    tokenizer_->accept("TO");
-
-    auto adrs = parse_pagedadrs();
-
-    // Store the entry
-    rom_.store(data, adrs);
+    parser_copy_to(data);
 }
 
 void parser::parse_copy()

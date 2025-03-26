@@ -28,6 +28,7 @@ class parser
     void parse_copy();
     void parse_copy_file();
     void parse_copy_data();
+    void parser_copy_to(std::vector<uint8_t> data);
     bool parse_anyadrs(uint8_t &page, uint16_t &adrs);
 };
 

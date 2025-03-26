@@ -24,7 +24,15 @@ int main(int argc, const char** argv)
     rom512 rom;
 
     /// Parse entry specs
-    parse_romspec(input_filename, rom);
+    try
+    {
+        parse_romspec(input_filename, rom);
+    }
+    catch (const std::string& error)
+    {
+        std::cerr << "Error: " << error << std::endl;
+        return 1;
+    }
 
     /*
         mapping map(rom);

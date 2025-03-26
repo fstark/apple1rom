@@ -55,7 +55,7 @@ class rombank32
         if (!check_free(adrs, data.size()))
             throw std::runtime_error("Not enough space to store data at the given address");
 
-        std::clog << "Storing " << data.size() << " bytes at " << adrs.to_string() << std::endl;
+        // std::clog << "Storing " << data.size() << " bytes at " << adrs.to_string() << std::endl;
         for (size_t i = 0; i < data.size(); i++)
         {
             data_[(uint16_t)(adrs + i)] = data[i];
@@ -86,8 +86,8 @@ class rombank32
         }
     }
 
-    // ### Wrongly named
-    bool allocate(size_t size, adrs_t& adrs)
+    //  Find the first space that has size bytes available
+    bool find_space(size_t size, adrs_t& adrs)
     {
         //  Find the first freespace that contains size bytes
         for (auto it = free_.begin(); it != free_.end(); ++it)
@@ -132,21 +132,37 @@ class rom512
         auto& bank = banks_[pagedadrs.get_page()];
         auto adrs = pagedadrs.get_address();
 
-        // std::clog << "Storing " << data.size() << " bytes at " << pagedadrs.to_string()
-        //           << std::endl;
+        std::clog << "Storing " << data.size() << " bytes at " << pagedadrs.to_string()
+                  << std::endl;
 
         // add the data
         bank.store(data, adrs);
     }
 
     //  Find the first space in the first bank that has size bytes available
-    //  wrongly named
-    pagedadrs_t allocate(size_t size)
+    //  at address adrs
+    bool find_space(size_t size, adrs_t adrs, pagedadrs_t& pagedadrs)
+    {
+        for (size_t i = 0; i < BankCount; ++i)
+            if (banks_[i].check_free(adrs, size))
+            {
+                pagedadrs = pagedadrs_t(i, adrs);
+                return true;
+            }
+        return false;
+    }
+
+    //  Find the first space in the first bank that has size bytes available
+    bool find_space(size_t size, pagedadrs_t& pagedadrs)
     {
         adrs_t adrs(0);
         for (size_t i = 0; i < BankCount; ++i)
-            if (banks_[i].allocate(size, adrs)) return pagedadrs_t(i, adrs);
-        throw "Cannot allocate "s + std::to_string(size) + " bytes";
+            if (banks_[i].find_space(size, adrs))
+            {
+                pagedadrs = pagedadrs_t(i, adrs);
+                return true;
+            }
+        return false;
     }
 
     const std::array<uint8_t, 32768 * BankCount> get_content() const
