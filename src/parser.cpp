@@ -27,6 +27,15 @@ void parse_romspec(const std::string &filename, rom512 &rom)
     parser p(rom, file_content);
 }
 
+adrs_t parser::parse_adrs0()
+{
+    // Get the address
+    auto adrs_str = tokenizer_->next_string();
+
+    //  format is nnnn, with nn hexadecimal
+    return adrs_t{static_cast<uint16_t>(std::stoi(adrs_str, nullptr, 16))};
+}
+
 bool parser::parse_anyadrs(uint8_t &page, uint16_t &adrs)
 {
     // Get the address
@@ -134,7 +143,22 @@ void parser::parse_menu() { last_menu_name_ = tokenizer_->next_string(); }
 
 void parser::parse_exec()
 {
-    menu_.push_back(menu_item(last_menu_name_, execaction{last_pagedadrs_}));
+    uint8_t page;
+    uint16_t adrs;
+    if (parse_anyadrs(page, adrs))
+    {
+        menu_.push_back(menu_item(last_menu_name_, execaction{pagedadrs_t(page, adrs_t(adrs))}));
+    }
+    else
+    {
+        menu_.push_back(menu_item(last_menu_name_, execaction{pagedadrs_t(0, adrs_t(adrs))}));
+    }
+}
+
+void parser::parse_load()
+{
+    auto adrs = parse_adrs0();
+    menu_.push_back(menu_item(last_menu_name_, loadaction{adrs, last_pagedadrs_, last_len_}));
 }
 
 void parser::parse()
@@ -149,6 +173,7 @@ void parser::parse()
         if (str == "COPY") parse_copy();
         if (str == "MENU") parse_menu();
         if (str == "EXEC") parse_exec();
+        if (str == "LOAD") parse_load();
     }
 
     std::clog << "Parsed " << menu_.size() << " menu items" << std::endl;

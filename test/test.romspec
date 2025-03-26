@@ -48,10 +48,12 @@ COPY FILE ../../wozdle/WOZDLE TO 3000
 
 COPY FILE ../../mandelbrot65/mandelbrot65.o65 ANYWHERE
     MENU demos/mandelbrot65
-        COPY 0280
+        LOAD 0280
         EXEC 0280
 
 COPY FILE ../../apple1loader/src/TICTACTOE ANYWHERE
     MENU games/tictactoe
-        COPY 0080-00A0,0300
-        EXEC "lang/warm basic"
+        LOAD 0080
+        LOAD 00A0
+        LOAD 0300
+        EXEC 0300 "lang/warm basic"

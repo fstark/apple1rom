@@ -43,14 +43,14 @@ Actions are:
 
 **``EXEC``** *``address``* : execute the code at the specified address. If no bank is specified, it will switch to the bank of the last file/data copied.
 
-**``COPY``** *``address``* : copy the content of the last specified file to the specified address. If no bank is specified, it will switch to the bank of the last file/data copied. Address is a 16 bits address (RAM).
+**``LOAD``** *``address``* : copy the content of the last specified file to the specified address. If no bank is specified, it will switch to the bank of the last file/data copied. Address is a 16 bits address (RAM).
 
 Example:
 
 ```
 COPY FILE "mandelbrot65.bin" TO ANYWHERE
     MENU Mandelbrot
-        COPY 0280
+        LOAD 0280
         EXEC 0280
 ```
 

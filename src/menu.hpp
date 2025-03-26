@@ -13,6 +13,19 @@ class emiter
    public:
     const std::vector<uint8_t> &code() const { return code_; }
 
+    void BYTE(uint8_t data)
+    {
+        std::clog << "BYTE" << std::endl;
+        emit(data);
+    }
+
+    void WORD(uint16_t data)
+    {
+        std::clog << "WORD" << std::endl;
+        emit(data & 0xff);
+        emit(data >> 8);
+    }
+
     void CALL(adrs_t adrs)
     {
         std::clog << "CALL " << adrs.to_string() << std::endl;
@@ -67,6 +80,28 @@ class execaction : public action
     execaction(pagedadrs_t code) : code_(code) {}
 
     virtual void doit(emiter &emiter) const { emiter.JMP(code_); }
+};
+
+class loadaction : public action
+{
+    adrs_t adrs_;
+    pagedadrs_t pagedadrs_;
+    size_t len_;
+
+   public:
+    loadaction(adrs_t adrs, pagedadrs_t pagedadrs, size_t len)
+        : adrs_(adrs), pagedadrs_(pagedadrs), len_(len)
+    {
+    }
+
+    virtual void doit(emiter &emiter) const
+    {
+        emiter.CALL((adrs_t)0x2018);
+        emiter.WORD((uint16_t)adrs_);
+        emiter.BYTE(pagedadrs_.get_page());
+        emiter.WORD((uint16_t)pagedadrs_.get_address());
+        emiter.WORD(len_);
+    }
 };
 
 class menu_item

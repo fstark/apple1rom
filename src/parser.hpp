@@ -35,8 +35,10 @@ class parser
     void parse_copy_data();
     void parser_copy_to(std::vector<uint8_t> data);
     bool parse_anyadrs(uint8_t &page, uint16_t &adrs);
+    adrs_t parse_adrs0();
     void parse_menu();
     void parse_exec();
+    void parse_load();
 };
 
 /// Parses a file containing ROM entry specifications.
