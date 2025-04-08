@@ -4,7 +4,6 @@
 #include <iostream>
 #include <string>
 
-#include "mapping.hpp"
 #include "parser.hpp"
 #include "rom512.hpp"
 

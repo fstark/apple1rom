@@ -10,7 +10,6 @@
 
 #include "asm.hpp"
 #include "chartokenizer.hpp"
-#include "romentryspec.hpp"
 #include "stringtokenizer.hpp"
 
 void parse_romspec(const std::string &filename, rom512 &rom)

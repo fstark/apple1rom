@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "adrs.hpp"
-#include "romentryspec.hpp"
 
 using namespace std::string_literals;
 
