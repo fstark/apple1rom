@@ -17,6 +17,9 @@ COPY FILE boot.bin TO 0D:2000
 COPY FILE boot.bin TO 0E:2000
 COPY FILE boot.bin TO 0F:2000
 
+; The menu code resides at 2100
+COPY FILE menu.bin TO 00:2100
+
 ; Every bank contains the bank ID at $9FFF
 COPY DATA 00 TO 00:9FFF
 COPY DATA 01 TO 01:9FFF
@@ -42,9 +45,9 @@ COPY FILE ../../apple1loader/software/BASIC TO 6000
     MENU "lang/warm basic"
         EXEC E2F3
 
-COPY FILE ../../wozdle/WOZDLE TO 3000
+COPY FILE ../../wozdle/WOZDLE TO 2100
     MENU games/wozdle
-        EXEC 3000
+        EXEC 2100
 
 COPY FILE ../../mandelbrot65/mandelbrot65.o65 ANYWHERE
     MENU demos/mandelbrot65

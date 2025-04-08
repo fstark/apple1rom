@@ -26,6 +26,9 @@ class adrs_t
     /// Comparison (using spaceship operator)
     auto operator<=>(const adrs_t&) const = default;
 
+    /// Inequality operator
+    bool operator!=(const adrs_t& other) const { return address_ != other.address_; }
+
     /// Low byte
     uint8_t get_low() const { return address_ & 0xff; }
 

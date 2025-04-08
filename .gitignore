@@ -36,3 +36,4 @@ src/trace.txt
 
 # Test BINs
 test/*.BIN
+src/*.bin

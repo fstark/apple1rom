@@ -12,18 +12,22 @@ class parser
 {
     rom512 &rom_;
     std::shared_ptr<stringtokenizer> tokenizer_;
-    std::vector<menu_item> menu_;
+    std::vector<std::shared_ptr<menu_action>> all_menu_actions_;
+    std::shared_ptr<menu_action> last_action_;
 
     std::string last_menu_name_;
     pagedadrs_t last_pagedadrs_;
     size_t last_len_;
+
+    menu root_menu_;
 
    public:
     parser(rom512 &rom, std::string &source)
         : rom_(rom),
           tokenizer_(std::make_shared<stringtokenizer>(chartokenizer::create(source))),
           last_pagedadrs_(0, adrs_t(0)),
-          last_len_(0)
+          last_len_(0),
+          root_menu_("/")
     {
         parse();
     }

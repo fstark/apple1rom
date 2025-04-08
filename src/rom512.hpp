@@ -93,7 +93,8 @@ class rombank32
     {
         //  Checks free
         if (!check_free(adrs, data.size()))
-            throw std::runtime_error("Not enough space to store data at the given address");
+            throw std::runtime_error("Not enough space to store data at the given address "s +
+                                     adrs.to_string() + " size " + std::to_string(data.size()));
 
         store_unchecked(data, adrs);
         reserve(adrs, data.size());

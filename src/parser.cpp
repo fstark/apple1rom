@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "asm.hpp"
 #include "chartokenizer.hpp"
 #include "romentryspec.hpp"
 #include "stringtokenizer.hpp"
@@ -94,6 +95,7 @@ void parser::parser_copy_to(std::vector<uint8_t> data)
 
     rom_.store(data, final_adrs);
     last_pagedadrs_ = final_adrs;
+    last_len_ = data.size();
 }
 
 // COPY FILE BOOT.BIN TO 00:2000
@@ -139,32 +141,40 @@ void parser::parse_copy()
         parse_copy_data();
 }
 
-void parser::parse_menu() { last_menu_name_ = tokenizer_->next_string(); }
+void parser::parse_menu()
+{
+    last_menu_name_ = tokenizer_->next_string();
+    last_action_ = std::make_shared<menu_action>(last_menu_name_);
+    root_menu_.add_item_path(last_action_);
+    // all_menu_actions_.push_back(std::make_shared<menu_action>(
+    //     last_menu_name_, execaction{pagedadrs_t(page, adrs_t(adrs))}));
+}
 
 void parser::parse_exec()
 {
     uint8_t page;
     uint16_t adrs;
-    if (parse_anyadrs(page, adrs))
+    if (!parse_anyadrs(page, adrs))
     {
-        menu_.push_back(menu_item(last_menu_name_, execaction{pagedadrs_t(page, adrs_t(adrs))}));
+        page = last_pagedadrs_.get_page();
+        std::clog << "EXEC USING IMPLICIT PAGE " << (int)page << " FOR " << last_menu_name_
+                  << std::endl;
     }
-    else
-    {
-        menu_.push_back(menu_item(last_menu_name_, execaction{pagedadrs_t(0, adrs_t(adrs))}));
-    }
+    last_action_->add_action(std::make_shared<execaction>(pagedadrs_t(page, adrs_t(adrs))));
 }
 
 void parser::parse_load()
 {
     auto adrs = parse_adrs0();
-    menu_.push_back(menu_item(last_menu_name_, loadaction{adrs, last_pagedadrs_, last_len_}));
+    last_action_->add_action(std::make_shared<loadaction>(adrs, last_pagedadrs_, last_len_));
+    // all_menu_actions_.push_back(std::make_shared<menu_action>(
+    //     last_menu_name_, loadaction{adrs, last_pagedadrs_, last_len_}));
 }
 
 void parser::parse()
 {
     // Reserve space for the code4096 bytes for the menu
-    rom_.reserve(pagedadrs_t(0, adrs_t(0x2100)), 4096);
+    rom_.reserve(pagedadrs_t(0, ROM0MENU), 4096);
 
     // Loop over all the tokens and process them
     while (!tokenizer_->peek_string().empty())
@@ -176,20 +186,20 @@ void parser::parse()
         if (str == "LOAD") parse_load();
     }
 
-    std::clog << "Parsed " << menu_.size() << " menu items" << std::endl;
-    emiter e;
-    for (const auto &item : menu_)
-    {
-        std::clog << "Menu item [" << item.name() << "]" << std::endl;
-        for (const auto &action : item.actions())
-        {
-            action->doit(e);
-        }
-    }
+    //    std::clog << "Parsed " << all_menu_actions_.size() << " menu actions" << std::endl;
+    root_menu_.dump();
+
+    emiter e0((adrs_t)ROM0MENU);
+
+    std::clog << "Emitting ROOT menu" << std::endl;
+    root_menu_.emit(e0);
+    std::clog << "Done emitting menu" << std::endl;
+    emiter e((adrs_t)ROM0MENU);
+    root_menu_.emit(e);
 
     if (e.code().size() > 4096)
     {
         throw std::runtime_error("Code too big");
     }
-    rom_.store_unchecked(e.code(), pagedadrs_t(0, adrs_t(0x2100)));
+    rom_.store_unchecked(e.code(), pagedadrs_t(0, ROM0MENU));
 }

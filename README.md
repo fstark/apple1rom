@@ -1,6 +1,17 @@
 # apple1rom
 Apple1 rom making utilities for SiliconInsider/Aberco Apple1 ROMs
 
+# Memory map
+
+; Common area (same on all banks)
+$2000: BOOT
+$2008: SWITCH0
+$2010: LONGJMP
+$2018: COPY
+
+; Bank 0
+$2100: MENU (displays menu in ZP:MENU)
+$2200: ROMMENU
 
 # Usage
 
@@ -55,3 +66,9 @@ COPY FILE "mandelbrot65.bin" TO ANYWHERE
 ```
 
 Will copy the content of the file ``mandelbrot65.bin`` in the ROM at the first available address, then define a menu item named "Mandelbrot". When selected, it will copy the content of the file at address 0280 and execute it.
+
+
+
+
+
+

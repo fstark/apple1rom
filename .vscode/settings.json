@@ -68,6 +68,7 @@
         "source_location": "cpp",
         "strstream": "cpp",
         "typeindex": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "__config": "cpp"
     }
 }
