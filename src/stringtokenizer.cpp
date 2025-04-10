@@ -71,3 +71,11 @@ void stringtokenizer::accept(const std::string &str)
         throw std::runtime_error("Expected " + str);
     }
 }
+
+void stringtokenizer::reset()
+{
+    // Reset the internal state of the tokenizer
+    char_tok_->reset();
+    current_string_.clear();
+    has_peeked_ = false;
+}

@@ -33,6 +33,9 @@ class chartokenizer
     // Retrieves the next token and advances the tokenizer.
     Token next_token();
 
+    // Resets the tokenizer to its initial state.
+    void reset();
+
     // Creates a shared pointer to a `chartokenizer` instance.
     static std::shared_ptr<chartokenizer> create(const std::string& str);
 

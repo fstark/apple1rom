@@ -51,6 +51,13 @@ chartokenizer::Token chartokenizer::next_token()
     return token;
 }
 
+void chartokenizer::reset()
+{
+    // Reset the position to the start of the string
+    pos_ = 0;
+    next_pos_ = 0;
+}
+
 std::shared_ptr<chartokenizer> chartokenizer::create(const std::string& str)
 {
     return std::make_shared<chartokenizer>(str);

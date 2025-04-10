@@ -161,7 +161,7 @@ void parser::parser_copy_to(std::vector<uint8_t> data)
     else
         throw std::runtime_error("Expected TO or ANYWHERE, got: " + token);
 
-    rom_.store(data, final_adrs);
+    if (!is_calculate_size_pass_) rom_.store(data, final_adrs);
     last_pagedadrs_ = last_pagedadrs_original_ = final_adrs;
     last_len_ = last_len_original_ = data.size();
 }
@@ -213,7 +213,7 @@ void parser::parse_menu()
 {
     last_menu_name_ = tokenizer_->next_string();
     last_action_ = std::make_shared<menu_action>(last_menu_name_);
-    root_menu_.add_item_path(last_action_);
+    root_menu_->add_item_path(last_action_);
     // all_menu_actions_.push_back(std::make_shared<menu_action>(
     //     last_menu_name_, execaction{pagedadrs_t(page, adrs_t(adrs))}));
 }
@@ -242,7 +242,7 @@ void parser::parse_load()
     last_pagedadrs_ += len;
 }
 
-void parser::process_tokens(bool calculate_size, emiter* temp_emiter)
+void parser::process_tokens()
 {
     while (!tokenizer_->peek_string().empty())
     {
@@ -252,30 +252,35 @@ void parser::process_tokens(bool calculate_size, emiter* temp_emiter)
         if (str == "EXEC") parse_exec();
         if (str == "LOAD") parse_load();
     }
-
-    if (calculate_size && temp_emiter)
-    {
-        root_menu_.emit(*temp_emiter);
-        calculated_menu_size_ = temp_emiter->code().size();
-    }
 }
 
 void parser::calculate_menu_size()
 {
+    is_calculate_size_pass_ = true;
     emiter temp_emiter((adrs_t)ROM0MENU);
-    process_tokens(true, &temp_emiter);
+    process_tokens();
+    root_menu_->emit(temp_emiter);
+    calculated_menu_size_ = temp_emiter.code().size();
+
+    is_calculate_size_pass_ = false;
 }
 
 void parser::parse()
 {
     // First pass: Calculate the size of the menu
+    std::clog << "Calculating menu size..." << std::endl;
     calculate_menu_size();
+    std::clog << "Menu size: 0x" << calculated_menu_size_ << std::endl;
+    std::clog << "------------------------------------------" << std::endl;
 
-    // Check if the calculated size exceeds the limit
-    if (calculated_menu_size_ > 4096)
-    {
-        throw std::runtime_error("Menu size exceeds the maximum limit of 4096 bytes");
-    }
+    // Reset the menu
+    root_menu_ = std::make_shared<menu>("/");
+    last_action_ = nullptr;
+    last_menu_name_ = "?";
+    last_pagedadrs_ = pagedadrs_t(0, adrs_t(0));
+    last_pagedadrs_original_ = last_pagedadrs_;
+    last_len_ = 0;
+    last_len_original_ = last_len_;
 
     // Second pass: Reserve the required space and parse the menu
     rom_.reserve(pagedadrs_t(0, ROM0MENU), calculated_menu_size_);
@@ -284,11 +289,20 @@ void parser::parse()
     tokenizer_->reset();
 
     // Process tokens for the second pass
-    process_tokens(false, nullptr);
+    std::clog << "Pass #2, data copy..." << std::endl;
+    process_tokens();
+    std::clog << "------------------------------------------" << std::endl;
 
     // Emit the root menu
+    std::clog << "Pass #3, Menu genertion..." << std::endl;
+    emiter e0((adrs_t)ROM0MENU);
+    root_menu_->emit(e0);
+    std::clog << "------------------------------------------" << std::endl;
+
+    std::clog << "Pass #4, Menu genertion with addresses..." << std::endl;
     emiter e((adrs_t)ROM0MENU);
-    root_menu_.emit(e);
+    root_menu_->emit(e);
+    std::clog << "------------------------------------------" << std::endl;
 
     // Store the emitted code in ROM
     rom_.store_unchecked(e.code(), pagedadrs_t(0, ROM0MENU));

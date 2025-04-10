@@ -21,6 +21,8 @@ class stringtokenizer
     std::string next_string();
     // Accepts a specific string, ensuring it matches the current token.
     void accept(const std::string &str);
+    // Resets the tokenizer to its initial state.
+    void reset();
 
    private:
     // Extracts the current string from the tokenizer.

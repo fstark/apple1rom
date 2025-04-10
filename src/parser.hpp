@@ -13,7 +13,6 @@ class parser
 {
     rom512 &rom_;
     std::shared_ptr<stringtokenizer> tokenizer_;
-    std::vector<std::shared_ptr<menu_action>> all_menu_actions_;
     std::shared_ptr<menu_action> last_action_;
 
     std::string last_menu_name_;
@@ -24,7 +23,11 @@ class parser
                        //  anywhere
     size_t last_len_original_;  // The len when we created the object
 
-    menu root_menu_;
+    size_t calculated_menu_size_;
+
+    std::shared_ptr<menu> root_menu_;
+
+    bool is_calculate_size_pass_;
 
    public:
     parser(rom512 &rom, std::string &source)
@@ -32,7 +35,7 @@ class parser
           tokenizer_(std::make_shared<stringtokenizer>(chartokenizer::create(source))),
           last_pagedadrs_(0, adrs_t(0)),
           last_len_(0),
-          root_menu_("/")
+          root_menu_(std::make_shared<menu>("/"))
     {
         parse();
     }
@@ -49,6 +52,8 @@ class parser
     void parse_menu();
     void parse_exec();
     void parse_load();
+    void calculate_menu_size();
+    void process_tokens();
 };
 
 /// Parses a file containing ROM entry specifications.
