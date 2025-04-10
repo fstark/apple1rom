@@ -12,6 +12,46 @@
 #include "chartokenizer.hpp"
 #include "stringtokenizer.hpp"
 
+static uint8_t uint8_from_string(const std::string &s)
+{
+    size_t index;
+    uint8_t res;
+    try
+    {
+        res = static_cast<uint8_t>(std::stoi(s, &index, 16));
+    }
+    catch (const std::invalid_argument &e)
+    {
+        throw std::runtime_error("Invalid number: " + s);
+    }
+    if (index != s.size())
+    {
+        throw std::runtime_error("Invalid number: " + s);
+    }
+    return res;
+}
+
+static uint16_t uint16_from_string(const std::string &s)
+{
+    size_t index;
+    uint16_t res;
+    try
+    {
+        res = static_cast<uint16_t>(std::stoi(s, &index, 16));
+    }
+    catch (const std::invalid_argument &e)
+    {
+        throw std::runtime_error("Invalid number: " + s);
+    }
+    if (index != s.size())
+    {
+        throw std::runtime_error("Invalid number: " + s);
+    }
+    return res;
+}
+
+static adrs_t adrs_from_string(const std::string &str) { return adrs_t{uint16_from_string(str)}; }
+
 void parse_romspec(const std::string &filename, rom512 &rom)
 {
     // Read all the file into a string
@@ -33,7 +73,36 @@ adrs_t parser::parse_adrs0()
     auto adrs_str = tokenizer_->next_string();
 
     //  format is nnnn, with nn hexadecimal
-    return adrs_t{static_cast<uint16_t>(std::stoi(adrs_str, nullptr, 16))};
+    return adrs_from_string(adrs_str);
+}
+
+void parser::parse_adrs0_len(adrs_t &adrs, size_t &len)
+{
+    // Get the address
+    auto adrs_str = tokenizer_->next_string();
+
+    adrs = adrs_from_string(adrs_str);
+
+    auto len_str = tokenizer_->peek_string();
+    size_t index = 0;
+    size_t parsed_len;
+    try
+    {
+        parsed_len = std::stoi(len_str, &index, 16);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        //  Not a number at all
+        //  index will be 0, so we'll skip next block
+    }
+    if (index == len_str.size())
+    {
+        len = parsed_len;
+        tokenizer_->next_string();
+        std::clog << "found len == " << len << std::endl;
+    }
+
+    std::clog << "ADRS LEN :" << adrs.to_string() << " len == " << len << std::endl;
 }
 
 bool parser::parse_anyadrs(uint8_t &page, uint16_t &adrs)
@@ -47,13 +116,13 @@ bool parser::parse_anyadrs(uint8_t &page, uint16_t &adrs)
     auto colon_pos = paged_adrs_str.find(':');
     if (colon_pos == std::string::npos)
     {
-        adrs = static_cast<uint16_t>(std::stoi(paged_adrs_str, nullptr, 16));
+        adrs = (uint16_t)adrs_from_string(paged_adrs_str);
         return false;
     }
     else
     {
-        page = static_cast<uint8_t>(std::stoi(paged_adrs_str.substr(0, colon_pos), nullptr, 16));
-        adrs = static_cast<uint16_t>(std::stoi(paged_adrs_str.substr(colon_pos + 1), nullptr, 16));
+        page = uint8_from_string(paged_adrs_str.substr(0, colon_pos));
+        adrs = uint16_from_string(paged_adrs_str.substr(colon_pos + 1));
         return true;
     }
 }
@@ -93,8 +162,8 @@ void parser::parser_copy_to(std::vector<uint8_t> data)
         throw std::runtime_error("Expected TO or ANYWHERE, got: " + token);
 
     rom_.store(data, final_adrs);
-    last_pagedadrs_ = final_adrs;
-    last_len_ = data.size();
+    last_pagedadrs_ = last_pagedadrs_original_ = final_adrs;
+    last_len_ = last_len_original_ = data.size();
 }
 
 // COPY FILE BOOT.BIN TO 00:2000
@@ -123,7 +192,7 @@ void parser::parse_copy_data()
     for (size_t i = 0; i < data_str.size(); i += 2)
     {
         std::string byte_str = data_str.substr(i, 2);
-        data.push_back(std::stoi(byte_str, nullptr, 16));
+        data.push_back(uint8_from_string(byte_str));
     }
 
     parser_copy_to(data);
@@ -155,7 +224,7 @@ void parser::parse_exec()
     uint16_t adrs;
     if (!parse_anyadrs(page, adrs))
     {
-        page = last_pagedadrs_.get_page();
+        page = last_pagedadrs_original_.get_page();
         std::clog << "EXEC USING IMPLICIT PAGE " << (int)page << " FOR " << last_menu_name_
                   << std::endl;
     }
@@ -164,18 +233,17 @@ void parser::parse_exec()
 
 void parser::parse_load()
 {
-    auto adrs = parse_adrs0();
-    last_action_->add_action(std::make_shared<loadaction>(adrs, last_pagedadrs_, last_len_));
-    // all_menu_actions_.push_back(std::make_shared<menu_action>(
-    //     last_menu_name_, loadaction{adrs, last_pagedadrs_, last_len_}));
+    //    auto adrs = parse_adrs0();
+    auto len = last_len_;
+    adrs_t adrs{0};
+    parse_adrs0_len(adrs, len);
+    last_action_->add_action(std::make_shared<loadaction>(adrs, last_pagedadrs_, len));
+    last_len_ -= len;
+    last_pagedadrs_ += len;
 }
 
-void parser::parse()
+void parser::process_tokens(bool calculate_size, emiter* temp_emiter)
 {
-    // Reserve space for the code4096 bytes for the menu
-    rom_.reserve(pagedadrs_t(0, ROM0MENU), 4096);
-
-    // Loop over all the tokens and process them
     while (!tokenizer_->peek_string().empty())
     {
         auto str = tokenizer_->next_string();
@@ -185,20 +253,43 @@ void parser::parse()
         if (str == "LOAD") parse_load();
     }
 
-    //    std::clog << "Parsed " << all_menu_actions_.size() << " menu actions" << std::endl;
-    root_menu_.dump();
+    if (calculate_size && temp_emiter)
+    {
+        root_menu_.emit(*temp_emiter);
+        calculated_menu_size_ = temp_emiter->code().size();
+    }
+}
 
-    emiter e0((adrs_t)ROM0MENU);
+void parser::calculate_menu_size()
+{
+    emiter temp_emiter((adrs_t)ROM0MENU);
+    process_tokens(true, &temp_emiter);
+}
 
-    std::clog << "Emitting ROOT menu" << std::endl;
-    root_menu_.emit(e0);
-    std::clog << "Done emitting menu" << std::endl;
+void parser::parse()
+{
+    // First pass: Calculate the size of the menu
+    calculate_menu_size();
+
+    // Check if the calculated size exceeds the limit
+    if (calculated_menu_size_ > 4096)
+    {
+        throw std::runtime_error("Menu size exceeds the maximum limit of 4096 bytes");
+    }
+
+    // Second pass: Reserve the required space and parse the menu
+    rom_.reserve(pagedadrs_t(0, ROM0MENU), calculated_menu_size_);
+
+    // Reset the tokenizer for the second pass
+    tokenizer_->reset();
+
+    // Process tokens for the second pass
+    process_tokens(false, nullptr);
+
+    // Emit the root menu
     emiter e((adrs_t)ROM0MENU);
     root_menu_.emit(e);
 
-    if (e.code().size() > 4096)
-    {
-        throw std::runtime_error("Code too big");
-    }
+    // Store the emitted code in ROM
     rom_.store_unchecked(e.code(), pagedadrs_t(0, ROM0MENU));
 }

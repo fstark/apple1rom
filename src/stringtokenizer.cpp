@@ -1,5 +1,7 @@
 #include "stringtokenizer.hpp"
 
+#include <stdexcept>
+
 stringtokenizer::stringtokenizer(std::shared_ptr<chartokenizer> char_tok)
     : char_tok_(char_tok), has_peeked_(false)
 {
@@ -60,4 +62,12 @@ std::string stringtokenizer::next_string()
 
     has_peeked_ = false;
     return current_string_;
+}
+
+void stringtokenizer::accept(const std::string &str)
+{
+    if (str != next_string())
+    {
+        throw std::runtime_error("Expected " + str);
+    }
 }

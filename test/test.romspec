@@ -38,8 +38,8 @@ COPY DATA 0D TO 0D:9FFF
 COPY DATA 0E TO 0E:9FFF
 COPY DATA 0F TO 0F:9FFF
 
-; A basic loads at E000
-COPY FILE ../../apple1loader/software/BASIC TO 6000
+; Apple1 basic loads at E000
+COPY FILE ../../apple1loader/software/BASIC TO 01:6000
     MENU lang/basic
         EXEC E000
     MENU "lang/warm basic"
@@ -56,7 +56,24 @@ COPY FILE ../../mandelbrot65/mandelbrot65.o65 ANYWHERE
 
 COPY FILE ../../apple1loader/src/TICTACTOE ANYWHERE
     MENU games/tictactoe
-        LOAD 0080
-        LOAD 00A0
-        LOAD 0300
-        EXEC 0300 "lang/warm basic"
+        LOAD 4A B6
+        LOAD 0800
+        EXEC 01:EFEC
+
+COPY FILE ../../apple1loader/src/A2MON TO 00:73F0
+    MENU "utils/apple2 monitor"
+        EXEC 00:73F0
+    MENU "utils/mini assembler"
+        EXEC 00:73F3
+
+COPY FILE ../../apple1loader/src/LABYRINTH ANYWHERE
+    MENU games/labyrinth
+        LOAD 0280
+        EXEC 0280
+
+../apple1loader/src/LITTLETOWER
+../apple1loader/src/LOADER
+../apple1loader/src/MASTERMIND
+../apple1loader/src/MEMCHECK
+../apple1loader/src/TICTACTOE
+../apple1loader/src/WOZMON2

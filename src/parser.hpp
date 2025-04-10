@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "menu.hpp"
+#include "menu_action.hpp"  // Added include
 #include "rom512.hpp"
 #include "stringtokenizer.hpp"
 
@@ -16,8 +17,12 @@ class parser
     std::shared_ptr<menu_action> last_action_;
 
     std::string last_menu_name_;
-    pagedadrs_t last_pagedadrs_;
-    size_t last_len_;
+    pagedadrs_t last_pagedadrs_;                         // The last paged address notcopied yet
+    pagedadrs_t last_pagedadrs_original_{0, adrs_t{0}};  // The last paged address "loaded"
+
+    size_t last_len_;  //  What was the last len of a "loaded" object that have not been copied
+                       //  anywhere
+    size_t last_len_original_;  // The len when we created the object
 
     menu root_menu_;
 
@@ -40,6 +45,7 @@ class parser
     void parser_copy_to(std::vector<uint8_t> data);
     bool parse_anyadrs(uint8_t &page, uint16_t &adrs);
     adrs_t parse_adrs0();
+    void parse_adrs0_len(adrs_t &adrs, size_t &len);
     void parse_menu();
     void parse_exec();
     void parse_load();

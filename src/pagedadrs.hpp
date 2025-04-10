@@ -37,4 +37,11 @@ class pagedadrs_t
            << address_.to_string();
         return ss.str();
     }
+
+    // += operator (only operates on the address)
+    pagedadrs_t &operator+=(size_t len)
+    {
+        address_ += len;
+        return *this;
+    }
 };

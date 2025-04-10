@@ -93,12 +93,13 @@ LOOP:
     STA (ADRSTO),Y
 
         ; LEN--
-    DEC LEN
-    BEQ SKIP0
-    DEC LEN+1
+    LDA LEN+0       ;Test if the LSB is zero
+    BNE SKIP0       ;If it isn't we can skip the next instruction
+    DEC LEN+1       ;Decrement the MSB when the LSB will underflow
 SKIP0:
+    DEC LEN+0
 
-        ; ADRSFORM++
+        ; ADRSFROM++
     INC ADRSFROM
     BNE SKIP1
     INC ADRSFROM+1
@@ -111,6 +112,7 @@ SKIP1:
 SKIP2:
 
     JMP LOOP
+
 DONE:
 
         ; Increment return address by 7
