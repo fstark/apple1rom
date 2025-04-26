@@ -35,5 +35,5 @@ makea1rom
 src/trace.txt
 
 # Test BINs
-test/*.BIN
+#test/*.BIN
 src/*.bin

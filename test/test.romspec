@@ -71,9 +71,13 @@ COPY FILE ../../apple1loader/src/LABYRINTH ANYWHERE
         LOAD 0280
         EXEC 0280
 
+COPY FILE ../../apple1loader/src/MEMCHECK ANYWHERE
+    MENU "utils/1emcheck"
+        LOAD 0280
+        EXEC 0280
+
+
 ../apple1loader/src/LITTLETOWER
-../apple1loader/src/LOADER
 ../apple1loader/src/MASTERMIND
-../apple1loader/src/MEMCHECK
 ../apple1loader/src/TICTACTOE
 ../apple1loader/src/WOZMON2
