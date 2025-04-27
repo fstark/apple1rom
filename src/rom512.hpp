@@ -31,7 +31,11 @@ class rombank32
     // rombank32& operator=(const rombank32&) = delete;
 
    public:
-    rombank32() : free_{{(adrs_t)(0x2000), 32768}} {}
+    rombank32() : free_{{(adrs_t)(0x2000), 32768}}
+    {
+        // ROM filled with 'JSR $2020' by default
+        data_.fill(0x20);  // Ensure all ROM is initialized to 0x20
+    }
 
     bool check_free(adrs_t adrs, size_t size) const
     {
@@ -141,13 +145,10 @@ class rombank32
     const std::array<uint8_t, 32768> get_content() const
     {
         std::array<uint8_t, 32768> content;
-
         // Copy data_[0x8000-0xa000] into content[0x0000-0x2000]
         std::copy(data_.begin() + 0x8000, data_.begin() + 0xA000, content.begin());
-
         // Copy data_[0x2000-0x8000] into content[0x2000-0x8000]
         std::copy(data_.begin() + 0x2000, data_.begin() + 0x8000, content.begin() + 0x2000);
-
         return content;
     }
 };

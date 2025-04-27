@@ -39,7 +39,7 @@ COPY DATA 0E TO 0E:9FFF
 COPY DATA 0F TO 0F:9FFF
 
 ; Apple1 basic loads at E000
-COPY FILE ../../apple1loader/software/BASIC TO 01:6000
+COPY FILE ../../apple1loader/software/BASIC TO 02:6000
     MENU lang/basic
         EXEC E000
     MENU "lang/warm basic"

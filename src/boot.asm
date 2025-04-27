@@ -17,6 +17,12 @@ COPY = $2018
 ROM0CODE = $2100
 DISPLAYMENU = $2200
 
+PANIC = $2020       ; ROM should be filled with $20 by default, making spurious bank switches
+                    ; perfoming a JSR $2020
+BANK = $9FFF        ; $9FFF contains the current bank number
+ECHO = $FFEF
+PRBYTE = $FFDC
+
 
     * = BOOT
 ; 2000 : The BOOT code
@@ -44,6 +50,35 @@ SWITCH:
 .)
 
     .dsb COPY-*,$ff
+    JMP COPY_IMPL
+
+; Handler of panic
+; Displays the bank number and the address we came from (+2)
+    .dsb PANIC-*,$ff
+.(
+    LDA #$0d
+    JSR ECHO
+    LDA BANK
+    JSR PRBYTE
+    LDA #':'
+    JSR ECHO
+    PLA
+    TAX
+    PLA
+    JSR PRBYTE
+    TXA
+    JSR PRBYTE
+    LDA #$0d
+    JSR ECHO
+LOOP:
+    LDA BANK
+    JSR PRBYTE
+    LDA #' '
+    JSR ECHO
+    JMP LOOP
+.)
+
+COPY_IMPL:
 .(
     PLA
     STA ARGS
